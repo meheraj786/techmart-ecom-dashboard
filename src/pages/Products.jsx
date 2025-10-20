@@ -1,6 +1,7 @@
 import React from "react";
 import { products } from "../seed/seed";
 import { Plus } from "lucide-react";
+import { Link } from "react-router";
 
 const Products = () => {
   return (
@@ -11,7 +12,7 @@ const Products = () => {
         </h4>
         <button className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-orange-600 flex items-center gap-2">
           <Plus size={20} />
-          <span className="hidden sm:inline">Add Product</span>
+          <Link to="/add-product" className="hidden sm:inline">Add Product</Link>
         </button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 lg:p-6">
