@@ -1,4 +1,4 @@
-import { List, Menu, Settings, ShoppingBag, Tag, Users } from "lucide-react";
+import { List, Menu, Settings, ShoppingBag, Tag, Users, X } from "lucide-react";
 import React, { useState } from "react";
 import Logo from "../layouts/Logo";
 import { Link, NavLink } from "react-router";
@@ -23,7 +23,7 @@ const Sidebar = () => {
       </button>
     <aside
       className={`
-        left-0 top-0 min-h-screen w-64 bg-gray-900 text-white z-40 transition-transform duration-300
+        left-0 top-0 min-h-screen w-64 absolute xl:static bg-gray-900 text-white z-40 transition-transform duration-300
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0
       `}
