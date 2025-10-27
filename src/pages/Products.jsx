@@ -24,7 +24,6 @@ const Products = () => {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
 
-  // Edit button click handler
   const handleEdit = (product) => {
     setSelectedProduct(product);
     setFormData({
@@ -42,17 +41,14 @@ const Products = () => {
     setEditModal(true);
   };
 
-  // Handle image file selection
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file type
       if (!file.type.startsWith('image/')) {
         toast.error('Please select an image file');
         return;
       }
       
-      // Validate file size (5MB max)
       if (file.size > 5 * 1024 * 1024) {
         toast.error('Image size should be less than 5MB');
         return;
@@ -60,7 +56,6 @@ const Products = () => {
 
       setImageFile(file);
       
-      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
@@ -69,30 +64,25 @@ const Products = () => {
     }
   };
 
-  // Remove selected image
   const handleRemoveImage = () => {
     setImageFile(null);
     setImagePreview(formData.image || '');
   };
 
-  // Delete button click handler
   const handleDeleteClick = (product) => {
     setSelectedProduct(product);
     setDeleteModal(true);
   };
 
-  // Update product
   const handleUpdate = async () => {
     try {
       let imageUrl = formData.image;
 
-      // Upload new image if selected
       if (imageFile) {
         const uploadResponse = await uploadImage(imageFile).unwrap();
         imageUrl = uploadResponse.data?.url || uploadResponse.url;
       }
 
-      // Update product with new image URL
       await updateProduct({
         id: selectedProduct._id,
         body: { ...formData, image: imageUrl }
@@ -108,7 +98,6 @@ const Products = () => {
     }
   };
 
-  // Delete product
   const handleDelete = async () => {
     try {
       await deleteProduct(selectedProduct._id).unwrap();
@@ -168,7 +157,6 @@ const Products = () => {
                 key={product._id}
                 className="bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden"
               >
-                {/* Image Container */}
                 <div className="relative bg-gray-50 h-36 overflow-hidden group">
                   <img
                     src={product.image}
@@ -176,7 +164,6 @@ const Products = () => {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   
-                  {/* Badges */}
                   {product.discount > 0 && (
                     <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
                       -{product.discount}%
@@ -188,7 +175,6 @@ const Products = () => {
                   </span>
                 </div>
 
-                {/* Content */}
                 <div className="p-3">
                   <span className="inline-block text-[10px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded mb-2">
                     {product.category?.name || product.category}
@@ -219,7 +205,6 @@ const Products = () => {
                     )}
                   </div>
 
-                  {/* Action Buttons */}
                   <div className="flex gap-1.5">
                     <button 
                       onClick={() => handleEdit(product)}
@@ -242,11 +227,9 @@ const Products = () => {
         )}
       </div>
 
-      {/* Edit Modal */}
       {editModal && selectedProduct && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            {/* Modal Header */}
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
               <h3 className="text-xl font-bold text-gray-900">Edit Product</h3>
               <button 
@@ -264,10 +247,8 @@ const Products = () => {
               </button>
             </div>
 
-            {/* Modal Body */}
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Product Name */}
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Product Name
@@ -281,7 +262,6 @@ const Products = () => {
                   />
                 </div>
 
-                {/* Description */}
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Description
@@ -295,7 +275,6 @@ const Products = () => {
                   />
                 </div>
 
-                {/* Price */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Price (৳)
@@ -309,7 +288,6 @@ const Products = () => {
                   />
                 </div>
 
-                {/* Discount */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Discount (%)
@@ -325,7 +303,6 @@ const Products = () => {
                   />
                 </div>
 
-                {/* Stock */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Stock Status
@@ -341,7 +318,6 @@ const Products = () => {
                   </select>
                 </div>
 
-                {/* Category */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Category ID
@@ -356,7 +332,6 @@ const Products = () => {
                   />
                 </div>
 
-                {/* Subcategory */}
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Subcategory ID (Optional)
@@ -371,13 +346,11 @@ const Products = () => {
                   />
                 </div>
 
-                {/* Image Upload */}
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Product Image
                   </label>
-                  
-                  {/* Upload Area */}
+                
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-primary transition-colors">
                     <input
                       type="file"
@@ -402,7 +375,6 @@ const Products = () => {
                   </div>
                 </div>
 
-                {/* Image Preview */}
                 {imagePreview && (
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -428,7 +400,6 @@ const Products = () => {
               </div>
             </div>
 
-            {/* Modal Footer */}
             <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-gray-200">
               <button
                 onClick={() => {
@@ -460,7 +431,6 @@ const Products = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal - Same as before */}
       {deleteModal && selectedProduct && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl max-w-md w-full">
@@ -472,17 +442,14 @@ const Products = () => {
                 </svg>
               </div>
 
-              {/* Title */}
               <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
                 Delete Product?
               </h3>
 
-              {/* Description */}
               <p className="text-gray-600 text-center mb-4">
                 Are you sure you want to delete <span className="font-semibold">"{selectedProduct?.name}"</span>? This action cannot be undone.
               </p>
 
-              {/* Product Info */}
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
                 <div className="flex items-center gap-4">
                   <img 
@@ -497,7 +464,6 @@ const Products = () => {
                 </div>
               </div>
 
-              {/* Buttons */}
               <div className="flex gap-3">
                 <button
                   onClick={() => setDeleteModal(false)}
