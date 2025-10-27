@@ -74,29 +74,43 @@ const Products = () => {
     setDeleteModal(true);
   };
 
-  const handleUpdate = async () => {
-    try {
-      let imageUrl = formData.image;
+const handleUpdate = async () => {
+  try {
+    let imageUrl = formData.image;
 
-      if (imageFile) {
-        const uploadResponse = await uploadImage(imageFile).unwrap();
-        imageUrl = uploadResponse.data?.url || uploadResponse.url;
-      }
-
-      await updateProduct({
-        id: selectedProduct._id,
-        body: { ...formData, image: imageUrl }
-      }).unwrap();
-      
-      setEditModal(false);
-      setImageFile(null);
-      setImagePreview('');
-      toast.success('Product updated successfully!');
-    } catch (error) {
-      console.error('Error updating product:', error);
-      toast.error(error?.data?.message || 'Failed to update product');
+    if (imageFile) {
+      const uploadResponse = await uploadImage(imageFile).unwrap();
+      imageUrl = uploadResponse.data?.url || uploadResponse.url;
     }
-  };
+
+    const updateData = {
+      name: formData.name,
+      description: formData.description,
+      price: formData.price,
+      discount: formData.discount || 0,
+      stock: formData.stock,
+      category: formData.category,
+      image: imageUrl
+    };
+
+    if (formData.subcategory && formData.subcategory.trim() !== '') {
+      updateData.subcategory = formData.subcategory;
+    }
+
+    await updateProduct({
+      id: selectedProduct._id,
+      body: updateData
+    }).unwrap();
+    
+    setEditModal(false);
+    setImageFile(null);
+    setImagePreview('');
+    toast.success('Product updated successfully!');
+  } catch (error) {
+    console.error('Error updating product:', error);
+    toast.error(error?.data?.message || 'Failed to update product');
+  }
+};
 
   const handleDelete = async () => {
     try {

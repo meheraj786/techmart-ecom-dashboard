@@ -12,6 +12,9 @@ import Setting from "./pages/Setting.jsx";
 import AddProduct from "./pages/AddProduct.jsx";
 import { Provider } from "react-redux";
 import { store } from "./store/store.js";
+import Signup from "./pages/Signup.jsx";
+import Login from "./pages/Login.jsx";
+import VerifyOTP from "./pages/VerifyOtp.jsx";
 
 const router = createBrowserRouter([
   {
@@ -43,6 +46,18 @@ const router = createBrowserRouter([
         element: <AddProduct />,
       },
     ],
+  },
+  {
+    path: "/signup",
+    element: <Signup/>
+  },
+  {
+    path: "/login",
+    element: <Login/>
+  },
+  {
+    path: "/verify-otp",
+    element: <VerifyOTP/>
   },
 ]);
 
