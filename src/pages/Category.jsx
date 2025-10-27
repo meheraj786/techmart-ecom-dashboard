@@ -25,13 +25,11 @@ const Category = () => {
   // Category states
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
-  const [deletingCategoryId, setDeletingCategoryId] = useState(null);
   const [categoryForm, setCategoryForm] = useState({ name: "", description: "" });
 
   // Subcategory states
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [editingSubcategory, setEditingSubcategory] = useState(null);
-  const [deletingSubcategoryId, setDeletingSubcategoryId] = useState(null);
   const [subcategoryForm, setSubcategoryForm] = useState({ name: "" });
 
   // ===== CATEGORY HANDLERS =====

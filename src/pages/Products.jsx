@@ -1,16 +1,30 @@
 import React, { useState } from "react";
-import { products } from "../seed/seed";
-import { Plus } from "lucide-react";
+import { Plus, Upload, X } from "lucide-react";
 import { Link } from "react-router";
+import toast from "react-hot-toast";
+import {
+  useGetProductsQuery,
+  useUpdateProductMutation,
+  useDeleteProductMutation,
+  useUploadImageMutation,
+} from "../services/productApi";
 
 const Products = () => {
-  const [productList, setProductList] = useState(products);
+  const { data: response, isLoading, isError, error } = useGetProductsQuery();
+  const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation();
+  const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
+  const [uploadImage, { isLoading: isUploading }] = useUploadImageMutation();
+
+  const productList = response?.data || [];
+
   const [editModal, setEditModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [formData, setFormData] = useState({});
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
 
-  // Edit button click handler - Fixed
+  // Edit button click handler
   const handleEdit = (product) => {
     setSelectedProduct(product);
     setFormData({
@@ -19,11 +33,46 @@ const Products = () => {
       price: product.price || 0,
       discount: product.discount || 0,
       stock: product.stock !== undefined ? product.stock : true,
-      category: product.category || '',
-      subcategory: product.subcategory || '',
+      category: product.category?._id || product.category || '',
+      subcategory: product.subcategory?._id || product.subcategory || '',
       image: product.image || ''
     });
+    setImagePreview(product.image || '');
+    setImageFile(null);
     setEditModal(true);
+  };
+
+  // Handle image file selection
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select an image file');
+        return;
+      }
+      
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image size should be less than 5MB');
+        return;
+      }
+
+      setImageFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Remove selected image
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview(formData.image || '');
   };
 
   // Delete button click handler
@@ -35,48 +84,62 @@ const Products = () => {
   // Update product
   const handleUpdate = async () => {
     try {
-      // API call for update
-      // const response = await fetch(`/api/products/${selectedProduct._id}`, {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData)
-      // });
+      let imageUrl = formData.image;
+
+      // Upload new image if selected
+      if (imageFile) {
+        const uploadResponse = await uploadImage(imageFile).unwrap();
+        imageUrl = uploadResponse.data?.url || uploadResponse.url;
+      }
+
+      // Update product with new image URL
+      await updateProduct({
+        id: selectedProduct._id,
+        body: { ...formData, image: imageUrl }
+      }).unwrap();
       
-      // Temporarily update in state
-      const updatedProducts = productList.map(p => 
-        p._id === selectedProduct._id ? { ...p, ...formData } : p
-      );
-      setProductList(updatedProducts);
-      
-      console.log('Updating product:', selectedProduct._id, formData);
       setEditModal(false);
-      alert('Product updated successfully!');
+      setImageFile(null);
+      setImagePreview('');
+      toast.success('Product updated successfully!');
     } catch (error) {
       console.error('Error updating product:', error);
-      alert('Failed to update product');
+      toast.error(error?.data?.message || 'Failed to update product');
     }
   };
 
   // Delete product
   const handleDelete = async () => {
     try {
-      // API call for delete
-      // await fetch(`/api/products/${selectedProduct._id}`, {
-      //   method: 'DELETE'
-      // });
+      await deleteProduct(selectedProduct._id).unwrap();
       
-      // Temporarily remove from state
-      const updatedProducts = productList.filter(p => p._id !== selectedProduct._id);
-      setProductList(updatedProducts);
-      
-      console.log('Deleting product:', selectedProduct._id);
       setDeleteModal(false);
-      alert('Product deleted successfully!');
+      toast.success('Product deleted successfully!');
     } catch (error) {
       console.error('Error deleting product:', error);
-      alert('Failed to delete product');
+      toast.error(error?.data?.message || 'Failed to delete product');
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="text-center text-red-500">
+          Error loading products: {error?.message || "Something went wrong"}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg shadow">
@@ -94,82 +157,89 @@ const Products = () => {
       </div>
 
       <div className="p-4 lg:p-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-          {productList.map((product, idx) => (
-            <div
-              key={idx}
-              className="bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden"
-            >
-              {/* Image Container */}
-              <div className="relative bg-gray-50 h-36 overflow-hidden group">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                
-                {/* Badges */}
-                {product.discount > 0 && (
-                  <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
-                    -{product.discount}%
-                  </span>
-                )}
-                
-                <span className={`absolute top-2 right-2 ${product.stock ? 'bg-green-500' : 'bg-gray-400'} text-white text-[10px] font-semibold px-1.5 py-0.5 rounded`}>
-                  {product.stock ? 'In Stock' : 'Out'}
-                </span>
-              </div>
-
-              {/* Content */}
-              <div className="p-3">
-                <span className="inline-block text-[10px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded mb-2">
-                  {product.category?.name || product.category}
-                </span>
-
-                <h4 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-1" title={product.name}>
-                  {product.name}
-                </h4>
-
-                <p className="text-gray-500 text-xs mb-2 line-clamp-1" title={product.description}>
-                  {product.description}
-                </p>
-
-                <div className="flex items-baseline gap-1.5 mb-3">
-                  {product.discount > 0 ? (
-                    <>
-                      <span className="text-base font-bold text-primary">
-                        ৳{(product.price * (1 - product.discount / 100)).toFixed(0)}
-                      </span>
-                      <span className="text-[10px] text-gray-400 line-through">
-                        ৳{product.price}
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-base font-bold text-gray-900">
-                      ৳{product.price}
+        {productList.length === 0 ? (
+          <div className="text-center text-gray-500 py-8">
+            No products found. Add your first product!
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+            {productList.map((product) => (
+              <div
+                key={product._id}
+                className="bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden"
+              >
+                {/* Image Container */}
+                <div className="relative bg-gray-50 h-36 overflow-hidden group">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  
+                  {/* Badges */}
+                  {product.discount > 0 && (
+                    <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+                      -{product.discount}%
                     </span>
                   )}
+                  
+                  <span className={`absolute top-2 right-2 ${product.stock ? 'bg-green-500' : 'bg-gray-400'} text-white text-[10px] font-semibold px-1.5 py-0.5 rounded`}>
+                    {product.stock ? 'In Stock' : 'Out'}
+                  </span>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-1.5">
-                  <button 
-                    onClick={() => handleEdit(product)}
-                    className="flex-1 bg-blue-500 text-white py-1.5 rounded text-xs font-medium hover:bg-blue-600 transition-colors"
-                  >
-                    Edit
-                  </button>
-                  <button 
-                    onClick={() => handleDeleteClick(product)}
-                    className="flex-1 bg-red-500 text-white py-1.5 rounded text-xs font-medium hover:bg-red-600 transition-colors"
-                  >
-                    Delete
-                  </button>
+                {/* Content */}
+                <div className="p-3">
+                  <span className="inline-block text-[10px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded mb-2">
+                    {product.category?.name || product.category}
+                  </span>
+
+                  <h4 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-1" title={product.name}>
+                    {product.name}
+                  </h4>
+
+                  <p className="text-gray-500 text-xs mb-2 line-clamp-1" title={product.description}>
+                    {product.description}
+                  </p>
+
+                  <div className="flex items-baseline gap-1.5 mb-3">
+                    {product.discount > 0 ? (
+                      <>
+                        <span className="text-base font-bold text-primary">
+                          ৳{(product.price * (1 - product.discount / 100)).toFixed(0)}
+                        </span>
+                        <span className="text-[10px] text-gray-400 line-through">
+                          ৳{product.price}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-base font-bold text-gray-900">
+                        ৳{product.price}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-1.5">
+                    <button 
+                      onClick={() => handleEdit(product)}
+                      className="flex-1 bg-blue-500 text-white py-1.5 rounded text-xs font-medium hover:bg-blue-600 transition-colors"
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteClick(product)}
+                      className="flex-1 bg-red-500 text-white py-1.5 rounded text-xs font-medium hover:bg-red-600 transition-colors"
+                      disabled={isDeleting}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Edit Modal */}
@@ -180,8 +250,13 @@ const Products = () => {
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
               <h3 className="text-xl font-bold text-gray-900">Edit Product</h3>
               <button 
-                onClick={() => setEditModal(false)}
+                onClick={() => {
+                  setEditModal(false);
+                  setImageFile(null);
+                  setImagePreview('');
+                }}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
+                disabled={isUpdating || isUploading}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -202,6 +277,7 @@ const Products = () => {
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                    disabled={isUpdating || isUploading}
                   />
                 </div>
 
@@ -215,6 +291,7 @@ const Products = () => {
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
                     rows={3}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                    disabled={isUpdating || isUploading}
                   />
                 </div>
 
@@ -228,6 +305,7 @@ const Products = () => {
                     value={formData.price}
                     onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                    disabled={isUpdating || isUploading}
                   />
                 </div>
 
@@ -243,10 +321,11 @@ const Products = () => {
                     min="0"
                     max="100"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                    disabled={isUpdating || isUploading}
                   />
                 </div>
 
-                {/* Stock - Fixed */}
+                {/* Stock */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Stock Status
@@ -255,6 +334,7 @@ const Products = () => {
                     value={formData.stock === true ? 'true' : 'false'}
                     onChange={(e) => setFormData({...formData, stock: e.target.value === 'true'})}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                    disabled={isUpdating || isUploading}
                   >
                     <option value="true">In Stock</option>
                     <option value="false">Out of Stock</option>
@@ -264,37 +344,84 @@ const Products = () => {
                 {/* Category */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Category
+                    Category ID
                   </label>
                   <input
                     type="text"
-                    value={formData.category?.name || formData.category}
+                    value={formData.category}
                     onChange={(e) => setFormData({...formData, category: e.target.value})}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                    disabled={isUpdating || isUploading}
+                    placeholder="Category ID"
                   />
                 </div>
 
-                {/* Image URL */}
+                {/* Subcategory */}
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Image URL
+                    Subcategory ID (Optional)
                   </label>
                   <input
                     type="text"
-                    value={formData.image}
-                    onChange={(e) => setFormData({...formData, image: e.target.value})}
+                    value={formData.subcategory}
+                    onChange={(e) => setFormData({...formData, subcategory: e.target.value})}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                    disabled={isUpdating || isUploading}
+                    placeholder="Subcategory ID"
                   />
+                </div>
+
+                {/* Image Upload */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Product Image
+                  </label>
+                  
+                  {/* Upload Area */}
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-primary transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                      id="image-upload"
+                      disabled={isUpdating || isUploading}
+                    />
+                    <label
+                      htmlFor="image-upload"
+                      className="flex flex-col items-center justify-center cursor-pointer"
+                    >
+                      <Upload className="w-10 h-10 text-gray-400 mb-2" />
+                      <span className="text-sm text-gray-600">
+                        {isUploading ? 'Uploading...' : 'Click to upload new image'}
+                      </span>
+                      <span className="text-xs text-gray-400 mt-1">
+                        PNG, JPG up to 5MB
+                      </span>
+                    </label>
+                  </div>
                 </div>
 
                 {/* Image Preview */}
-                {formData.image && (
+                {imagePreview && (
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Image Preview
+                      {imageFile && (
+                        <span className="text-xs text-green-600 ml-2">(New image selected)</span>
+                      )}
                     </label>
-                    <div className="bg-gray-50 h-48 rounded-lg flex items-center justify-center overflow-hidden">
-                      <img src={formData.image} alt="Preview" className="max-h-full object-contain" />
+                    <div className="relative bg-gray-50 h-48 rounded-lg flex items-center justify-center overflow-hidden border border-gray-200">
+                      <img src={imagePreview} alt="Preview" className="max-h-full object-contain" />
+                      {imageFile && (
+                        <button
+                          onClick={handleRemoveImage}
+                          className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors"
+                          disabled={isUpdating || isUploading}
+                        >
+                          <X size={16} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -304,23 +431,36 @@ const Products = () => {
             {/* Modal Footer */}
             <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-gray-200">
               <button
-                onClick={() => setEditModal(false)}
-                className="px-5 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-100 transition-colors"
+                onClick={() => {
+                  setEditModal(false);
+                  setImageFile(null);
+                  setImagePreview('');
+                }}
+                className="px-5 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-100 transition-colors disabled:opacity-50"
+                disabled={isUpdating || isUploading}
               >
                 Cancel
               </button>
               <button
                 onClick={handleUpdate}
-                className="px-5 py-2 bg-primary text-white rounded-lg font-medium hover:bg-orange-600 transition-colors"
+                className="px-5 py-2 bg-primary text-white rounded-lg font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center gap-2"
+                disabled={isUpdating || isUploading}
               >
-                Update Product
+                {(isUpdating || isUploading) ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    {isUploading ? 'Uploading...' : 'Updating...'}
+                  </>
+                ) : (
+                  'Update Product'
+                )}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal - Same as before */}
       {deleteModal && selectedProduct && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl max-w-md w-full">
@@ -361,15 +501,24 @@ const Products = () => {
               <div className="flex gap-3">
                 <button
                   onClick={() => setDeleteModal(false)}
-                  className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  disabled={isDeleting}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="flex-1 px-4 py-2.5 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
+                  className="flex-1 px-4 py-2.5 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  disabled={isDeleting}
                 >
-                  Delete
+                  {isDeleting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Deleting...
+                    </>
+                  ) : (
+                    'Delete'
+                  )}
                 </button>
               </div>
             </div>
