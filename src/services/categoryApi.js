@@ -3,12 +3,11 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const categoryApi = createApi({
   reducerPath: "categoryApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.BASE_URL || "http://localhost:5000/api/v1/",
+    baseUrl: import.meta.env.VITE_BASE_URL || "http://localhost:5000/api/v1/",
     credentials: "include",
   }),
   tagTypes: ["Category", "Subcategory"],
   endpoints: (build) => ({
-    // ===== CATEGORY =====
     getCategories: build.query({
       query: () => "category/all-category",
       providesTags: ["Category"],
@@ -40,8 +39,7 @@ export const categoryApi = createApi({
       }),
       invalidatesTags: ["Category"],
     }),
-
-    // ===== SUBCATEGORY =====
+/////////////////////////////////////////////////////
     getSubcategories: build.query({
       query: () => "sub-category/all-subcategory",
       providesTags: ["Subcategory"],
@@ -77,14 +75,12 @@ export const categoryApi = createApi({
 });
 
 export const {
-  // Category hooks
   useGetCategoriesQuery,
   useCreateCategoryMutation,
   useGetSingleCategoryQuery,
   useUpdateCategoryMutation,
   useDeleteCategoryMutation,
-
-  // Subcategory hooks
+//////////////////////////////////////////
   useGetSubcategoriesQuery,
   useCreateSubcategoryMutation,
   useGetSingleSubcategoryQuery,
