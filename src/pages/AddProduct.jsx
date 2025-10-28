@@ -45,7 +45,7 @@ export default function AddProduct() {
       formData.append("image", product.image);
 
       const response = await axios.post(
-        "http://localhost:5000/api/v1/product/create-product",
+        import.meta.env.VITE_BASE_URL,
         formData,
         {
           headers: {
