@@ -2,10 +2,12 @@ import { useState } from "react";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import { useGetCategoriesQuery } from "../services/categoryApi";
-import { Navigate } from "react-router";
+import { useNavigate } from "react-router";
+import { useGetProductsQuery } from "../services/productApi";
 
 export default function AddProduct() {
-  const navigate = Navigate();
+  const navigate = useNavigate();
+  const { refetch } = useGetProductsQuery();
   const [product, setProduct] = useState({
     name: "",
     description: "",
@@ -45,7 +47,7 @@ export default function AddProduct() {
       formData.append("image", product.image);
 
       const response = await axios.post(
-        import.meta.env.VITE_BASE_URL,
+        `${import.meta.env.VITE_BASE_URL}/product/create-product`,
         formData,
         {
           headers: {
@@ -57,7 +59,8 @@ export default function AddProduct() {
       console.log(response);
 
       toast.success("Product added successfully!");
-      navigate("/products");
+      await navigate("/products");
+      await refetch();
       setProduct({
         name: "",
         description: "",
@@ -93,7 +96,7 @@ export default function AddProduct() {
             <input
               type="text"
               name="name"
-              value={product.name}
+              value={product?.name}
               onChange={handleChange}
               placeholder="Enter product name"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
@@ -107,7 +110,7 @@ export default function AddProduct() {
             </label>
             <textarea
               name="description"
-              value={product.description}
+              value={product?.description}
               onChange={handleChange}
               placeholder="Enter product description"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
@@ -124,7 +127,7 @@ export default function AddProduct() {
               <input
                 type="number"
                 name="price"
-                value={product.price}
+                value={product?.price}
                 onChange={handleChange}
                 placeholder="Enter price"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
@@ -138,7 +141,7 @@ export default function AddProduct() {
               <input
                 type="number"
                 name="discount"
-                value={product.discount}
+                value={product?.discount}
                 onChange={handleChange}
                 placeholder="Enter discount"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
@@ -153,15 +156,15 @@ export default function AddProduct() {
               </label>
               <select
                 name="category"
-                value={product.category}
+                value={product?.category}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 required
               >
                 <option value="">Select category</option>
-                {categories.map((cat) => (
+                {categories?.map((cat) => (
                   <option key={cat._id} value={cat._id}>
-                    {cat.name}
+                    {cat?.name}
                   </option>
                 ))}
               </select>
@@ -173,16 +176,16 @@ export default function AddProduct() {
               </label>
               <select
                 name="subcategory"
-                value={product.subcategory}
+                value={product?.subcategory}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">Select subcategory</option>
                 {categories
-                  .find((cat) => cat._id === product.category)
+                  .find((cat) => cat._id === product?.category)
                   ?.subcategory?.map((sub) => (
-                    <option key={sub._id} value={sub._id}>
-                      {sub.name}
+                    <option key={sub?._id} value={sub?._id}>
+                      {sub?.name}
                     </option>
                   ))}
               </select>
@@ -193,7 +196,7 @@ export default function AddProduct() {
             <input
               type="checkbox"
               name="stock"
-              checked={product.stock}
+              checked={product?.stock}
               onChange={handleChange}
               id="stock"
               className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"

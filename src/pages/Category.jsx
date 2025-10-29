@@ -13,26 +13,32 @@ import {
 
 const Category = () => {
   const { data: response, isLoading, isError, error } = useGetCategoriesQuery();
-  const [createCategory, { isLoading: isCreating }] = useCreateCategoryMutation();
-  const [updateCategory, { isLoading: isUpdating }] = useUpdateCategoryMutation();
-  const [deleteCategory, { isLoading: isDeleting }] = useDeleteCategoryMutation();
-  const [createSubcategory, { isLoading: isCreatingSubcat }] = useCreateSubcategoryMutation();
-  const [updateSubcategory, { isLoading: isUpdatingSubcat }] = useUpdateSubcategoryMutation();
-  const [deleteSubcategory, { isLoading: isDeletingSubcat }] = useDeleteSubcategoryMutation();
+  const [createCategory, { isLoading: isCreating }] =
+    useCreateCategoryMutation();
+  const [updateCategory, { isLoading: isUpdating }] =
+    useUpdateCategoryMutation();
+  const [deleteCategory, { isLoading: isDeleting }] =
+    useDeleteCategoryMutation();
+  const [createSubcategory, { isLoading: isCreatingSubcat }] =
+    useCreateSubcategoryMutation();
+  const [updateSubcategory, { isLoading: isUpdatingSubcat }] =
+    useUpdateSubcategoryMutation();
+  const [deleteSubcategory, { isLoading: isDeletingSubcat }] =
+    useDeleteSubcategoryMutation();
 
   const categories = response?.data || [];
 
-  // Category states
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
-  const [categoryForm, setCategoryForm] = useState({ name: "", description: "" });
+  const [categoryForm, setCategoryForm] = useState({
+    name: "",
+    description: "",
+  });
 
-  // Subcategory states
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [editingSubcategory, setEditingSubcategory] = useState(null);
   const [subcategoryForm, setSubcategoryForm] = useState({ name: "" });
 
-  // ===== CATEGORY HANDLERS =====
   const handleAddCategory = async () => {
     if (categoryForm.name.trim()) {
       try {
@@ -49,7 +55,10 @@ const Category = () => {
 
   const handleEditCategory = (category) => {
     setEditingCategory(category);
-    setCategoryForm({ name: category.name, description: category.description || "" });
+    setCategoryForm({
+      name: category.name,
+      description: category.description || "",
+    });
   };
 
   const handleUpdateCategory = async () => {
@@ -81,7 +90,6 @@ const Category = () => {
     }
   };
 
-  // ===== SUBCATEGORY HANDLERS =====
   const handleAddSubcategory = async (categoryId) => {
     if (subcategoryForm.name.trim()) {
       try {
@@ -155,10 +163,11 @@ const Category = () => {
 
   return (
     <div className="bg-white rounded-lg shadow">
-      <Toaster position="top-right"/>
-      {/* Header */}
+      <Toaster position="top-right" />
       <div className="p-4 lg:p-6 border-b border-gray-200 flex justify-between items-center">
-        <h4 className="text-lg lg:text-xl font-bold text-gray-900">Categories</h4>
+        <h4 className="text-lg lg:text-xl font-bold text-gray-900">
+          Categories
+        </h4>
         <button
           onClick={() => setShowAddCategory(true)}
           className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-orange-600 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -169,7 +178,6 @@ const Category = () => {
         </button>
       </div>
 
-      {/* Add/Edit Category Form */}
       {(showAddCategory || editingCategory) && (
         <div className="p-4 lg:p-6 border-b border-gray-200 bg-orange-50">
           <h5 className="font-semibold text-gray-900 mb-3">
@@ -178,14 +186,18 @@ const Category = () => {
           <input
             type="text"
             value={categoryForm.name}
-            onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
+            onChange={(e) =>
+              setCategoryForm({ ...categoryForm, name: e.target.value })
+            }
             placeholder="Category name"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2 outline-none focus:ring-2 focus:ring-primary"
             disabled={isCreating || isUpdating}
           />
           <textarea
             value={categoryForm.description}
-            onChange={(e) => setCategoryForm({ ...categoryForm, description: e.target.value })}
+            onChange={(e) =>
+              setCategoryForm({ ...categoryForm, description: e.target.value })
+            }
             placeholder="Category description"
             rows={2}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2 outline-none focus:ring-2 focus:ring-primary"
@@ -193,17 +205,21 @@ const Category = () => {
           />
           <div className="flex gap-2">
             <button
-              onClick={editingCategory ? handleUpdateCategory : handleAddCategory}
+              onClick={
+                editingCategory ? handleUpdateCategory : handleAddCategory
+              }
               className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              disabled={(isCreating || isUpdating) || !categoryForm.name.trim()}
+              disabled={isCreating || isUpdating || !categoryForm.name.trim()}
             >
-              {(isCreating || isUpdating) ? (
+              {isCreating || isUpdating ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   {editingCategory ? "Updating..." : "Creating..."}
                 </>
+              ) : editingCategory ? (
+                "Update"
               ) : (
-                editingCategory ? "Update" : "Save"
+                "Save"
               )}
             </button>
             <button
@@ -221,7 +237,6 @@ const Category = () => {
         </div>
       )}
 
-      {/* Categories List */}
       <div className="p-4 lg:p-6">
         {categories.length === 0 ? (
           <div className="text-center text-gray-500 py-8">
@@ -235,9 +250,13 @@ const Category = () => {
             >
               <div className="flex justify-between items-start mb-3">
                 <div className="flex-1">
-                  <h4 className="text-lg font-bold text-gray-900 mb-1">{category.name}</h4>
+                  <h4 className="text-lg font-bold text-gray-900 mb-1">
+                    {category.name}
+                  </h4>
                   {category.description && (
-                    <p className="text-sm text-gray-600">{category.description}</p>
+                    <p className="text-sm text-gray-600">
+                      {category.description}
+                    </p>
                   )}
                 </div>
                 <div className="flex items-center gap-2 ml-4">
@@ -265,16 +284,20 @@ const Category = () => {
                 </div>
               </div>
 
-              {/* Add/Edit Subcategory Form */}
-              {(selectedCategoryId === category._id || editingSubcategory?.category === category._id) && (
+              {(selectedCategoryId === category._id ||
+                editingSubcategory?.category === category._id) && (
                 <div className="mb-3 bg-gray-50 p-3 rounded-lg">
                   <h6 className="font-semibold text-gray-700 text-sm mb-2">
-                    {editingSubcategory ? "Edit Subcategory" : "Add New Subcategory"}
+                    {editingSubcategory
+                      ? "Edit Subcategory"
+                      : "Add New Subcategory"}
                   </h6>
                   <input
                     type="text"
                     value={subcategoryForm.name}
-                    onChange={(e) => setSubcategoryForm({ name: e.target.value })}
+                    onChange={(e) =>
+                      setSubcategoryForm({ name: e.target.value })
+                    }
                     placeholder="Subcategory name"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2 outline-none focus:ring-2 focus:ring-primary"
                     disabled={isCreatingSubcat || isUpdatingSubcat}
@@ -287,15 +310,21 @@ const Category = () => {
                           : () => handleAddSubcategory(category._id)
                       }
                       className="bg-primary text-white px-3 py-1.5 rounded text-sm hover:bg-orange-600 disabled:opacity-50 flex items-center gap-1"
-                      disabled={(isCreatingSubcat || isUpdatingSubcat) || !subcategoryForm.name.trim()}
+                      disabled={
+                        isCreatingSubcat ||
+                        isUpdatingSubcat ||
+                        !subcategoryForm.name.trim()
+                      }
                     >
-                      {(isCreatingSubcat || isUpdatingSubcat) ? (
+                      {isCreatingSubcat || isUpdatingSubcat ? (
                         <>
                           <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
                           {editingSubcategory ? "Updating..." : "Creating..."}
                         </>
+                      ) : editingSubcategory ? (
+                        "Update"
                       ) : (
-                        editingSubcategory ? "Update" : "Save"
+                        "Save"
                       )}
                     </button>
                     <button
@@ -313,7 +342,6 @@ const Category = () => {
                 </div>
               )}
 
-              {/* Subcategories */}
               <div className="flex flex-wrap gap-2">
                 {category.subcategory && category.subcategory.length > 0 ? (
                   category.subcategory.map((sub) => (
@@ -325,7 +353,10 @@ const Category = () => {
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => {
-                            handleEditSubcategory({ ...sub, category: category._id });
+                            handleEditSubcategory({
+                              ...sub,
+                              category: category._id,
+                            });
                           }}
                           className="text-blue-500 hover:text-blue-700 p-0.5"
                           title="Edit"
@@ -344,7 +375,9 @@ const Category = () => {
                     </div>
                   ))
                 ) : (
-                  <span className="text-gray-400 text-sm italic">No subcategories yet</span>
+                  <span className="text-gray-400 text-sm italic">
+                    No subcategories yet
+                  </span>
                 )}
               </div>
             </div>
