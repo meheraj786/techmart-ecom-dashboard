@@ -15,7 +15,6 @@ import { store } from "./store/store.js";
 import Signup from "./pages/Signup.jsx";
 import Login from "./pages/Login.jsx";
 import VerifyOTP from "./pages/VerifyOtp.jsx";
-import DndTutorial from "./pages/Test.jsx";
 
 const router = createBrowserRouter([
   {
