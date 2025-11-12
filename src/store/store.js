@@ -3,6 +3,7 @@ import { setupListeners } from "@reduxjs/toolkit/query";
 import { categoryApi } from "../services/categoryApi";
 import { productApi } from "../services/productApi";
 
+
 export const store = configureStore({
   reducer: {
     [categoryApi.reducerPath]: categoryApi.reducer,
